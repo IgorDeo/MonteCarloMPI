@@ -1,0 +1,267 @@
+Monte Carlo Pi - Resultados de Performance
+Executado em: Ter 24 Jun 2025 00:43:08 -03
+=========================================
+
+Teste: 1 processos, 1000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 1
+Total de pontos: 1000000
+Pontos por processo: 1000000
+------------------------------------------
+Processo 0: 785368 pontos dentro do círculo (de 1000000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 785368
+Pi estimado: 3.141472
+Pi real: 3.141593
+Erro absoluto: 0.000121
+Erro percentual: 0.004%
+Tempo de execução: 0.031960 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.031960 segundos
+Speedup estimado: 0.85x
+Eficiência estimada: 85.0%
+Throughput: 31289111 pontos/segundo
+==========================================
+
+Teste: 2 processos, 1000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 2
+Total de pontos: 1000000
+Pontos por processo: 500000
+------------------------------------------
+Processo 0: 392617 pontos dentro do círculo (de 500000 pontos)
+Processo 1: 393157 pontos dentro do círculo (de 500000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 785774
+Pi estimado: 3.143096
+Pi real: 3.141593
+Erro absoluto: 0.001503
+Erro percentual: 0.048%
+Tempo de execução: 0.011766 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.011766 segundos
+Speedup estimado: 1.70x
+Eficiência estimada: 85.0%
+Throughput: 169981302 pontos/segundo
+==========================================
+
+Teste: 4 processos, 1000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 4
+Total de pontos: 1000000
+Pontos por processo: 250000
+------------------------------------------
+Processo 0: 196439 pontos dentro do círculo (de 250000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 785246
+Pi estimado: 3.140984
+Pi real: 3.141593
+Erro absoluto: 0.000609
+Erro percentual: 0.019%
+Tempo de execução: 0.005813 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.005813 segundos
+Speedup estimado: 3.40x
+Eficiência estimada: 85.0%
+Throughput: 688112851 pontos/segundo
+==========================================
+Processo 1: 196463 pontos dentro do círculo (de 250000 pontos)
+Processo 3: 196294 pontos dentro do círculo (de 250000 pontos)
+Processo 2: 196050 pontos dentro do círculo (de 250000 pontos)
+
+Teste: 8 processos, 1000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 8
+Total de pontos: 1000000
+Pontos por processo: 125000
+------------------------------------------
+Processo 0: 98401 pontos dentro do círculo (de 125000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 785278
+Pi estimado: 3.141112
+Pi real: 3.141593
+Erro absoluto: 0.000481
+Erro percentual: 0.015%
+Tempo de execução: 0.006902 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.006902 segundos
+Speedup estimado: 6.80x
+Eficiência estimada: 85.0%
+Throughput: 1159084323 pontos/segundo
+==========================================
+Processo 6: 97926 pontos dentro do círculo (de 125000 pontos)
+Processo 4: 98204 pontos dentro do círculo (de 125000 pontos)
+Processo 3: 98096 pontos dentro do círculo (de 125000 pontos)
+Processo 2: 98183 pontos dentro do círculo (de 125000 pontos)
+Processo 7: 98146 pontos dentro do círculo (de 125000 pontos)
+Processo 5: 98126 pontos dentro do círculo (de 125000 pontos)
+Processo 1: 98196 pontos dentro do círculo (de 125000 pontos)
+
+Teste: 4 processos, 100000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 4
+Total de pontos: 100000
+Pontos por processo: 25000
+------------------------------------------
+Processo 0: 19679 pontos dentro do círculo (de 25000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 78620
+Processo 1: 19677 pontos dentro do círculo (de 25000 pontos)
+Processo 2: 19570 pontos dentro do círculo (de 25000 pontos)
+Processo 3: 19694 pontos dentro do círculo (de 25000 pontos)
+Pi estimado: 3.144800
+Pi real: 3.141593
+Erro absoluto: 0.003207
+Erro percentual: 0.102%
+Tempo de execução: 0.000632 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.000632 segundos
+Speedup estimado: 3.40x
+Eficiência estimada: 85.0%
+Throughput: 6329113924 pontos/segundo
+==========================================
+
+Teste: 4 processos, 1000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 4
+Total de pontos: 1000000
+Pontos por processo: 250000
+------------------------------------------
+Processo 0: 196399 pontos dentro do círculo (de 250000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 785382
+Pi estimado: 3.141528
+Pi real: 3.141593
+Erro absoluto: 0.000065
+Erro percentual: 0.002%
+Tempo de execução: 0.005819 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.005819 segundos
+Speedup estimado: 3.40x
+Eficiência estimada: 85.0%
+Throughput: 687403334 pontos/segundo
+==========================================
+Processo 1: 196414 pontos dentro do círculo (de 250000 pontos)
+Processo 2: 196060 pontos dentro do círculo (de 250000 pontos)
+Processo 3: 196509 pontos dentro do círculo (de 250000 pontos)
+
+Teste: 4 processos, 10000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 4
+Total de pontos: 10000000
+Pontos por processo: 2500000
+------------------------------------------
+Processo 0: 1964786 pontos dentro do círculo (de 2500000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 7854433
+Pi estimado: 3.141773
+Pi real: 3.141593
+Erro absoluto: 0.000181
+Erro percentual: 0.006%
+Tempo de execução: 0.059886 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.059886 segundos
+Speedup estimado: 3.40x
+Eficiência estimada: 85.0%
+Throughput: 66793574 pontos/segundo
+==========================================
+Processo 3: 1963577 pontos dentro do círculo (de 2500000 pontos)
+Processo 1: 1963677 pontos dentro do círculo (de 2500000 pontos)
+Processo 2: 1962393 pontos dentro do círculo (de 2500000 pontos)
+
+Teste: 4 processos, 100000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 4
+Total de pontos: 100000000
+Pontos por processo: 25000000
+------------------------------------------
+Processo 0: 19636741 pontos dentro do círculo (de 25000000 pontos)
+Processo 3: 19633542 pontos dentro do círculo (de 25000000 pontos)
+Processo 2: 19635920 pontos dentro do círculo (de 25000000 pontos)
+Processo 1: 19635428 pontos dentro do círculo (de 25000000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 78541631
+Pi estimado: 3.141665
+Pi real: 3.141593
+Erro absoluto: 0.000073
+Erro percentual: 0.002%
+Tempo de execução: 0.581463 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.581463 segundos
+Speedup estimado: 3.40x
+Eficiência estimada: 85.0%
+Throughput: 6879200 pontos/segundo
+==========================================
+
+Teste: 8 processos, 100000000 pontos
+-----------------------------------
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 8
+Total de pontos: 100000000
+Pontos por processo: 12500000
+------------------------------------------
+Processo 3: 9818933 pontos dentro do círculo (de 12500000 pontos)
+Processo 1: 9816893 pontos dentro do círculo (de 12500000 pontos)
+Processo 6: 9818517 pontos dentro do círculo (de 12500000 pontos)
+Processo 0: 9817500 pontos dentro do círculo (de 12500000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 78544476
+Pi estimado: 3.141779
+Pi real: 3.141593
+Erro absoluto: 0.000186
+Erro percentual: 0.006%
+Tempo de execução: 0.276171 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Tempo paralelo: 0.276171 segundos
+Speedup estimado: 6.80x
+Eficiência estimada: 85.0%
+Throughput: 28967560 pontos/segundo
+==========================================
+Processo 4: 9818621 pontos dentro do círculo (de 12500000 pontos)
+Processo 7: 9819424 pontos dentro do círculo (de 12500000 pontos)
+Processo 5: 9817246 pontos dentro do círculo (de 12500000 pontos)
+Processo 2: 9817342 pontos dentro do círculo (de 12500000 pontos)

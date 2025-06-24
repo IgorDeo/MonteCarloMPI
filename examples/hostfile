@@ -1,0 +1,33 @@
+# Arquivo de configuração de hosts para MPI distribuído
+# Formato: hostname slots=N [opções]
+
+# Máquina local (8 cores)
+localhost slots=8
+
+# Exemplos de máquinas remotas (comente/descomente conforme necessário)
+
+# Servidores Linux
+# server1.exemplo.com slots=16 max_slots=16
+# server2.exemplo.com slots=8  max_slots=8
+# server3.exemplo.com slots=4  max_slots=4
+
+# Cluster de Raspberry Pi
+# pi1.local slots=4
+# pi2.local slots=4  
+# pi3.local slots=4
+# pi4.local slots=4
+
+# IPs específicos
+# 192.168.1.10 slots=4
+# 192.168.1.11 slots=4
+# 192.168.1.12 slots=8
+
+# Configurações avançadas (exemplos)
+# server.hpc.edu slots=32 max_slots=64 user=mpiuser
+# gpu-node slots=8 max_slots=8
+
+# Para usar este arquivo:
+# mpirun -np 8 --hostfile hostfile ./monte_carlo_pi 1000000
+
+# Verificar hosts disponíveis:
+# mpirun --hostfile hostfile --display-allocation hostname 

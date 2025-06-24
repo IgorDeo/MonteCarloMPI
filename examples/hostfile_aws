@@ -1,0 +1,4 @@
+localhost slots=8
+# Substitua pelo IP público da sua instância EC2
+# Exemplo: 54.123.45.67 slots=2 user=ubuntu
+<EC2-IP> slots=2 user=ubuntu 
