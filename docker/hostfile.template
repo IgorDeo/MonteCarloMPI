@@ -1,0 +1,4 @@
+mpi-node1 slots=1
+mpi-node2 slots=1
+mpi-node3 slots=1
+mpi-node4 slots=1
