@@ -1,12 +1,21 @@
+version: '3.8'
+
 services:
   mpi-node:
-    image: mpi-node
-    hostname: mpi-node-{{.Task.Slot}}
+    image: mpi-node:latest
+    scale: 8
+    volumes:
+      - /tmp:/tmp
+    environment:
+      - MPI_HOST_COUNT=8
     deploy:
-      replicas: 16
-    networks:
-      - mpi-net
-
-networks:
-  mpi-net:
-    driver: overlay
+      replicas: 8
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M 

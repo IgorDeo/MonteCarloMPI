@@ -63,49 +63,57 @@ test-precision: $(TARGET) $(RESULTSDIR)
 	@echo "\n10M pontos:"
 	mpirun -np 4 $(TARGET) 10000000
 
-# ==================== AWS CLUSTER ====================
+# ==================== DOCKER CONTAINERS ====================
 
-# Configurar cluster AWS automaticamente
-aws-setup: $(TARGET)
-	@echo "Configurando cluster MPI híbrido (Local + AWS EC2)..."
-	./scripts/setup_aws_cluster.sh setup
+# Construir imagem Docker otimizada (Alpine Multi-stage)
+docker-build: $(TARGET)
+	@echo "Construindo imagem Docker MPI otimizada (Alpine Multi-stage)..."
+	docker build -t mpi-node:latest -f docker/Dockerfile .
 
-# Menu interativo para AWS
-aws-menu: $(TARGET)
-	@echo "Abrindo menu de configuração AWS..."
-	./scripts/setup_aws_cluster.sh
+# Verificar dependências do Docker
+docker-check:
+	@echo "Verificando dependências do Docker..."
+	./scripts/run_swarm.sh check
 
-# Testar cluster AWS existente
-aws-test: $(TARGET)
-	@if [ -f examples/hostfile_aws ]; then \
-		echo "Testando cluster AWS..."; \
-		mpirun --hostfile examples/hostfile_aws --np 2 hostname; \
-		echo "\nExecutando Monte Carlo distribuído..."; \
-		mpirun --hostfile examples/hostfile_aws --np 5 $(TARGET) 1000000; \
-	else \
-		echo "❌ Hostfile AWS não encontrado. Execute 'make aws-setup' primeiro."; \
-	fi
+# Fazer deploy com containers individuais (funciona melhor que Swarm no macOS)
+swarm-deploy: $(TARGET)
+	@echo "Fazendo deploy com containers MPI individuais..."
+	./scripts/run_swarm.sh deploy
 
-# Executar programa no cluster AWS
-aws-run: $(TARGET)
-	@if [ -f examples/hostfile_aws ]; then \
-		echo "Executando no cluster AWS (10 processos: 8 local + 2 EC2, 10M pontos)..."; \
-		mpirun --hostfile examples/hostfile_aws --np 10 $(TARGET) 10000000; \
-	else \
-		echo "❌ Hostfile AWS não encontrado. Execute 'make aws-setup' primeiro."; \
-	fi
+# Verificar status dos containers
+swarm-status:
+	@echo "Status dos containers MPI:"
+	./scripts/run_swarm.sh status
 
-# Limpar recursos AWS
-aws-cleanup:
-	@echo "Terminando instância EC2..."
-	./scripts/setup_aws_cluster.sh cleanup
+# Executar teste de conectividade
+swarm-test:
+	@echo "Testando conectividade..."
+	./scripts/run_swarm.sh test
 
-# Verificar dependências AWS
-aws-check:
-	@echo "Verificando dependências AWS..."
-	@which aws > /dev/null && echo "✓ AWS CLI encontrado" || echo "✗ AWS CLI não encontrado - instale com: pip install awscli"
-	@aws sts get-caller-identity > /dev/null 2>&1 && echo "✓ AWS CLI configurado" || echo "✗ AWS CLI não configurado - execute: aws configure"
-	@which ssh > /dev/null && echo "✓ SSH disponível" || echo "✗ SSH não encontrado"
+# Executar programa MPI distribuído
+swarm-run:
+	@echo "Executando Monte Carlo Pi nos containers..."
+	./scripts/run_swarm.sh run
+
+# Escalar o número de containers
+swarm-scale:
+	@echo "Escalando containers MPI..."
+	./scripts/run_swarm.sh scale
+
+# Menu interativo
+swarm-menu:
+	@echo "Abrindo menu interativo..."
+	./scripts/run_swarm.sh menu
+
+# Limpar containers
+swarm-cleanup:
+	@echo "Removendo containers MPI..."
+	./scripts/run_swarm.sh cleanup
+
+# Visualizar logs
+swarm-logs:
+	@echo "Logs dos containers MPI:"
+	./scripts/run_swarm.sh logs
 
 # ==================== GERAL ====================
 
@@ -151,13 +159,17 @@ help:
 	@echo "  test-scaling - Teste de escalabilidade"
 	@echo "  test-precision - Teste de precisão"
 	@echo ""
-	@echo "CLUSTER AWS (Local + EC2):"
-	@echo "  aws-setup    - Configurar cluster AWS automaticamente"
-	@echo "  aws-menu     - Menu interativo para AWS"
-	@echo "  aws-test     - Testar cluster AWS existente"
-	@echo "  aws-run      - Executar programa no cluster AWS"
-	@echo "  aws-cleanup  - Terminar instâncias EC2"
-	@echo "  aws-check    - Verificar dependências AWS"
+	@echo "DOCKER CONTAINERS (Distribuído):"
+	@echo "  docker-build  - Construir imagem Docker otimizada"
+	@echo "  swarm-deploy  - Deploy com containers MPI individuais"
+	@echo "  swarm-status  - Verificar status dos containers"
+	@echo "  swarm-test    - Testar conectividade"
+	@echo "  swarm-run     - Executar programa nos containers"
+	@echo "  swarm-scale   - Escalar número de containers"
+	@echo "  swarm-menu    - Menu interativo"
+	@echo "  swarm-logs    - Ver logs dos containers"
+	@echo "  swarm-cleanup - Remover containers"
+	@echo "  docker-check  - Verificar dependências do Docker"
 	@echo ""
 	@echo "SISTEMA:"
 	@echo "  clean        - Limpar arquivos gerados"
@@ -171,12 +183,15 @@ help:
 	@echo ""
 	@echo "USO MANUAL:"
 	@echo "  Local:       mpirun -np <processos> ./$(TARGET) <pontos>"
-	@echo "  Distribuído: mpirun --hostfile examples/hostfile_aws -np <processos> ./$(TARGET) <pontos>"
+	@echo "  Docker:      make swarm-deploy && make swarm-run"
 	@echo ""
 	@echo "EXEMPLOS:"
 	@echo "  make test                    # Teste rápido local"
-	@echo "  make aws-setup              # Configurar cluster AWS"
-	@echo "  make aws-run                # Executar no cluster AWS"
+	@echo "  make docker-build           # Construir imagem otimizada"
+	@echo "  make swarm-deploy           # Deploy cluster Docker"
+	@echo "  make swarm-run              # Executar no cluster"
+	@echo "  make swarm-menu             # Menu interativo"
+	@echo "  ./scripts/run_swarm.sh menu # Script direto"
 	@echo "  mpirun -np 8 ./$(TARGET) 10000000  # Manual local"
 
-.PHONY: all compile test test-full test-scaling test-precision clean check-mpi install-deps-ubuntu install-deps-macos mpi-info help aws-setup aws-menu aws-test aws-run aws-cleanup aws-check 
+.PHONY: all compile test test-full test-scaling test-precision clean check-mpi install-deps-ubuntu install-deps-macos mpi-info help docker-build swarm-deploy swarm-status swarm-test swarm-run swarm-scale swarm-menu swarm-logs swarm-cleanup docker-check 
