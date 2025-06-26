@@ -261,64 +261,101 @@ Eficiência: 80%
 
 Este projeto fornece uma base sólida para compreender os conceitos fundamentais do MPI e sua aplicação em problemas de computação científica.
 
-# Utilizando Docker com MPI Distribuído
-Este projeto demonstra como executar um programa paralelo com MPI (Message Passing Interface) utilizando quatro containers Docker que atuam como nós de um cluster.
+# Utilizando Docker Swarm com MPI Distribuído
 
-Os containers são definidos no docker-compose.yml e compartilham uma mesma rede Docker personalizada (mpi-net), permitindo que se comuniquem diretamente pelos nomes de host (mpi-node1, mpi-node2, etc.). Cada container é configurado com:
+Este projeto demonstra como executar um programa paralelo com MPI (Message Passing Interface) utilizando múltiplos containers Docker que atuam como nós de um cluster.
+
+No exemplo, usaremos 16 nós Docker em um cluster Swarm, mas esse número pode ser ajustado conforme a necessidade.
+
+Cada nó roda uma imagem Docker configurada com:
 
 - OpenSSH Server para permitir acesso remoto via SSH.
 
 - MPICH (implementação do MPI).
 
-- Um usuário comum (mpiuser) com autenticação via chave SSH para permitir comunicação sem senha entre os nós.
+- Usuário `mpiuser` com autenticação via chave SSH, permitindo comunicação sem senha entre os nós.
 
-## 1. Build da imagem
-Para construir a imagem base utilizada pelos nós, rode o comando `docker-compose build`. Isso criará os containers com todas as dependências do MPI e SSH.
+- Rede Docker do tipo overlay `mpi-net` para comunicação entre containers.
 
-## 2 Mudar para o usuário mpiuser
+## 1. Build da imagem base
 
-Para facilitar os testes de conectividade SSH entre os containers, utilize o usuário mpiuser, que já está configurado com as chaves públicas e senha padrão mpiuser.
-
-Acesse o terminal do container mpi-node1 e mude para o usuário:
-
+No **diretório raiz do projeto** (onde está a pasta docker e o Dockerfile), rode o comando:
 ```bash
-docker exec -it mpi-node1 bash
-su - mpiuser
+docker build -t mpi-node:latest -f docker/Dockerfile .
 ```
 
-Com isso, todos os testes seguintes (como ping, ssh e mpirun) devem ser executados a partir desse usuário.
+Isso cria a imagem Docker com todas as dependências para MPI e SSH.
 
-## 3. Testar conectividade e SSH de mpi-node1 para os outros nós
+## 2. Inicializar o Docker Swarm
 
-### 3.1 Verificar conectividade via ping
+Se você ainda não iniciou o Swarm, rode o comando: `docker swarm init`
+
+## 3. Escolher o número de réplicas
+
+Você pode modificar o `docker-compose.yml` no atributo `replicas` para escolher o número de nós que serão criados. O exemplo aqui usará 16, como está no arquivo, caso modifique, modifique também onde aparecer o **16** pelo número escolhido por você.
+
+## 4. Deploy da stack no Swarm
+
+Rode o comando abaixo **dentro do diretório** `docker` para criar a stack com o compose: 
 
 ```bash
-for host in mpi-node1 mpi-node2 mpi-node3 mpi-node4; do
+docker stack deploy -c docker-compose.yml mpi_stack
+```
+
+Você verá os serviços sendo criados e réplicas iniciadas.
+
+## 5. Verificar status dos serviços e containers
+
+Para checar os serviços: 
+
+```bash
+docker service ls
+```
+
+Para ver os containers criados: 
+```bash
+docker service ps mpi_stack_mpi-node
+```
+
+## 6. Testar conectividade e SSH entre os nós
+
+Para facilitar, acesse o terminal de um dos containers (por exemplo, o nó 1):
+
+```bash
+docker exec -u mpiuser -it $(docker ps --format "{{.Names}}" | Where-Object { $_ -match "^mpi_stack_mpi-node\.1\." }) bash
+```
+
+Agora, dentro do container como mpiuser, faça os testes:
+
+### 6.1. Verificar conectividade via ping
+
+```bash
+for host in $(seq 1 16 | sed 's/^/mpi-node-/'); do
   echo "Pingando $host..."
   ping -c 1 -W 1 $host && echo "Ping OK" || echo "Ping falhou"
 done
 ```
 Isso confirma que todos os nós estão acessíveis pela rede Docker.
 
-### 3.2 Testar conexão SSH
+### 6.2. Testar conexão SSH
 O comando abaixo tenta conectar via SSH a partir de mpi-node1 e evita o prompt interativo da primeira conexão:
 
 ```bash
-for host in mpi-node1 mpi-node2 mpi-node3 mpi-node4; do
+for host in $(seq 1 16 | sed 's/^/mpi-node-/'); do
   echo "Testando SSH em $host..."
-  ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 mpiuser@$host "echo 'Conexão bem sucedida a $host'" || echo "Falha SSH em $host"
+  ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 mpiuser@$host "echo 'Conexão OK em $host'" || echo "Falha SSH em $host"
 done
 ```
 
 Com isso os hosts também são adicionados ao `known_hosts`, permitindo executar o MPI distribuído.
 
-## 4. Executar o MPI distribuído
+## 7. Executar o MPI distribuído
 Uma vez que os testes de rede e SSH estejam funcionando:
 
 ```bash
-mpirun -np 4 --host mpi-node1,mpi-node2,mpi-node3,mpi-node4 /home/mpiuser/monte_carlo_pi 1000000000
+mpirun -np 16 --host $(seq 1 16 | sed 's/^/mpi-node-/; s/$/,/' | tr -d '\n' | sed 's/,$//') /home/mpiuser/monte_carlo_pi 1000000000
 ```
-Esse comando executa o programa monte_carlo_pi de forma distribuída nos 4 nós.
+Esse comando executa o programa monte_carlo_pi de forma distribuída nos 16 nós.
 
 # 🌥️ **Cluster Híbrido AWS (Avançado)**
 
