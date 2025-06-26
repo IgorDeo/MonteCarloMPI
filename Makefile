@@ -73,47 +73,47 @@ docker-build: $(TARGET)
 # Verificar dependências do Docker
 docker-check:
 	@echo "Verificando dependências do Docker..."
-	./scripts/run_swarm.sh check
+	./scripts/run_docker.sh check
 
-# Fazer deploy com containers individuais (funciona melhor que Swarm no macOS)
-swarm-deploy: $(TARGET)
-	@echo "Fazendo deploy com containers MPI individuais..."
-	./scripts/run_swarm.sh deploy
+# Fazer deploy com containers MPI
+docker-deploy: $(TARGET)
+	@echo "Fazendo deploy com containers MPI..."
+	./scripts/run_docker.sh deploy
 
 # Verificar status dos containers
-swarm-status:
+docker-status:
 	@echo "Status dos containers MPI:"
-	./scripts/run_swarm.sh status
+	./scripts/run_docker.sh status
 
 # Executar teste de conectividade
-swarm-test:
+docker-test:
 	@echo "Testando conectividade..."
-	./scripts/run_swarm.sh test
+	./scripts/run_docker.sh test
 
 # Executar programa MPI distribuído
-swarm-run:
+docker-run:
 	@echo "Executando Monte Carlo Pi nos containers..."
-	./scripts/run_swarm.sh run
+	./scripts/run_docker.sh run
 
 # Escalar o número de containers
-swarm-scale:
+docker-scale:
 	@echo "Escalando containers MPI..."
-	./scripts/run_swarm.sh scale
+	./scripts/run_docker.sh scale
 
 # Menu interativo
-swarm-menu:
+docker-menu:
 	@echo "Abrindo menu interativo..."
-	./scripts/run_swarm.sh menu
+	./scripts/run_docker.sh menu
 
 # Limpar containers
-swarm-cleanup:
+docker-cleanup:
 	@echo "Removendo containers MPI..."
-	./scripts/run_swarm.sh cleanup
+	./scripts/run_docker.sh cleanup
 
 # Visualizar logs
-swarm-logs:
+docker-logs:
 	@echo "Logs dos containers MPI:"
-	./scripts/run_swarm.sh logs
+	./scripts/run_docker.sh logs
 
 # ==================== GERAL ====================
 
@@ -161,14 +161,14 @@ help:
 	@echo ""
 	@echo "DOCKER CONTAINERS (Distribuído):"
 	@echo "  docker-build  - Construir imagem Docker otimizada"
-	@echo "  swarm-deploy  - Deploy com containers MPI individuais"
-	@echo "  swarm-status  - Verificar status dos containers"
-	@echo "  swarm-test    - Testar conectividade"
-	@echo "  swarm-run     - Executar programa nos containers"
-	@echo "  swarm-scale   - Escalar número de containers"
-	@echo "  swarm-menu    - Menu interativo"
-	@echo "  swarm-logs    - Ver logs dos containers"
-	@echo "  swarm-cleanup - Remover containers"
+	@echo "  docker-deploy - Deploy com containers MPI"
+	@echo "  docker-status - Verificar status dos containers"
+	@echo "  docker-test   - Testar conectividade"
+	@echo "  docker-run    - Executar programa nos containers"
+	@echo "  docker-scale  - Escalar número de containers"
+	@echo "  docker-menu   - Menu interativo"
+	@echo "  docker-logs   - Ver logs dos containers"
+	@echo "  docker-cleanup - Remover containers"
 	@echo "  docker-check  - Verificar dependências do Docker"
 	@echo ""
 	@echo "SISTEMA:"
@@ -183,15 +183,15 @@ help:
 	@echo ""
 	@echo "USO MANUAL:"
 	@echo "  Local:       mpirun -np <processos> ./$(TARGET) <pontos>"
-	@echo "  Docker:      make swarm-deploy && make swarm-run"
+	@echo "  Docker:      make docker-deploy && make docker-run"
 	@echo ""
 	@echo "EXEMPLOS:"
 	@echo "  make test                    # Teste rápido local"
 	@echo "  make docker-build           # Construir imagem otimizada"
-	@echo "  make swarm-deploy           # Deploy cluster Docker"
-	@echo "  make swarm-run              # Executar no cluster"
-	@echo "  make swarm-menu             # Menu interativo"
-	@echo "  ./scripts/run_swarm.sh menu # Script direto"
+	@echo "  make docker-deploy           # Deploy cluster Docker"
+	@echo "  make docker-run              # Executar no cluster"
+	@echo "  make docker-menu             # Menu interativo"
+	@echo "  ./scripts/run_docker.sh menu # Script direto"
 	@echo "  mpirun -np 8 ./$(TARGET) 10000000  # Manual local"
 
-.PHONY: all compile test test-full test-scaling test-precision clean check-mpi install-deps-ubuntu install-deps-macos mpi-info help docker-build swarm-deploy swarm-status swarm-test swarm-run swarm-scale swarm-menu swarm-logs swarm-cleanup docker-check 
+.PHONY: all compile test test-full test-scaling test-precision clean check-mpi install-deps-ubuntu install-deps-macos mpi-info help docker-build docker-deploy docker-status docker-test docker-run docker-scale docker-menu docker-cleanup docker-logs 

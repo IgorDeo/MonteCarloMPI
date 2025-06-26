@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
+#include <string.h>
 #include "utils.h"
 
 int main(int argc, char *argv[]) {
@@ -11,11 +13,15 @@ int main(int argc, char *argv[]) {
     long long global_points_inside = 0;
     double pi_estimate, error_percentage;
     double start_time, end_time, execution_time;
+    char hostname[256];
     
     // Inicializar MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Obter hostname do container
+    gethostname(hostname, sizeof(hostname));
     
     // Verificar argumentos da linha de comando
     if (argc != 2) {
@@ -57,9 +63,10 @@ int main(int argc, char *argv[]) {
     end_time = MPI_Wtime();
     execution_time = end_time - start_time;
     
-    // Exibir resultados locais de cada processo
-    printf("Processo %d: %lld pontos dentro do círculo (de %lld pontos)\n", 
-           rank, local_points_inside, points_per_process);
+    // Exibir resultados locais de cada processo com hostname
+    printf("Processo %d [%s]: %lld pontos dentro do círculo (de %lld pontos)\n", 
+           rank, hostname, local_points_inside, points_per_process);
+    fflush(stdout);
     
     // Usar MPI_Reduce para somar todos os pontos dentro do círculo
     MPI_Reduce(&local_points_inside, &global_points_inside, 1, MPI_LONG_LONG, 

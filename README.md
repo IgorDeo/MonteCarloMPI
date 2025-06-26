@@ -1,15 +1,18 @@
 # Projeto MPI: Cálculo de Pi usando Monte Carlo
 
-## Descrição do Problema
+## 📋 Descrição do Projeto
 
-Este projeto implementa o cálculo do valor de Pi (π) utilizando o método Monte Carlo com programação paralela através do MPI (Message Passing Interface). O método Monte Carlo é uma técnica estatística que usa números aleatórios para resolver problemas matemáticos, sendo ideal para demonstrar conceitos de computação paralela.
+Este projeto implementa o cálculo do valor de Pi (π) utilizando o método Monte Carlo com programação paralela através do MPI (Message Passing Interface). O projeto oferece duas formas de execução:
 
-### Método Monte Carlo para Cálculo de Pi
+1. **Execução Local**: Usando MPI instalado diretamente no sistema
+2. **Execução Distribuída**: Usando containers Docker para simular um cluster
+
+### 🎯 Método Monte Carlo para Cálculo de Pi
 
 O método baseia-se na relação geométrica entre um círculo inscrito em um quadrado:
 
 1. **Princípio**: Consideramos um círculo de raio 1 inscrito em um quadrado de lado 2
-2. **Área do círculo**: π × r² = π × 1² = π
+2. **Área do círculo**: π × r² = π × 1² = π  
 3. **Área do quadrado**: (2r)² = 4
 4. **Razão**: π/4 = (área do círculo)/(área do quadrado)
 
@@ -19,441 +22,460 @@ O método baseia-se na relação geométrica entre um círculo inscrito em um qu
 - Calcular a razão: pontos_dentro_círculo / total_pontos
 - Estimar π: 4 × (pontos_dentro_círculo / total_pontos)
 
-## MPI: Distribuído vs Threads
-
-### 🌐 **MPI é para Computação Distribuída**
-- **MPI usa PROCESSOS**, não threads
-- **Funciona em múltiplas máquinas** conectadas por rede
-- **Memória distribuída**: cada processo tem sua própria memória
-- **Comunicação via mensagens**: processos se comunicam enviando dados
-- **Escalável para clusters e supercomputadores**
-
-### 🔧 **Verificar Slots Disponíveis**
-
-```bash
-# Ver mapeamento de processos
-mpirun --display-map --np 8 hostname
-
-# Ver alocação de recursos  
-mpirun --display-allocation --np 4 hostname
-
-# Número de cores do sistema
-sysctl -n hw.ncpu  # macOS
-nproc              # Linux
-```
-
-### 🌐 **Execução Distribuída**
-
-#### Arquivo de Hosts (hostfile)
-```bash
-# Criar hostfile para múltiplas máquinas
-echo "server1 slots=8" > hostfile
-echo "server2 slots=4" >> hostfile
-echo "192.168.1.10 slots=16" >> hostfile
-
-# Executar distribuído
-mpirun -np 28 --hostfile hostfile ./monte_carlo_pi 10000000
-```
-
-#### Configuração SSH
-```bash
-# Configurar acesso sem senha
-ssh-keygen -t rsa
-ssh-copy-id user@server1
-ssh-copy-id user@server2
-```
-
-## Plano da Solução com MPI
-
-### Arquitectura Paralela
-
-**Estratégia de Paralelização**:
-- **Processo Master (rank 0)**: Coordena a execução, coleta resultados e calcula Pi final
-- **Processos Worker (rank > 0)**: Executam simulações Monte Carlo independentes
-- **Distribuição do trabalho**: Cada processo gera N/P pontos (onde N = total de pontos, P = número de processos)
-
-### Funcionalidades MPI Utilizadas
-
-#### 1. **Inicialização e Finalização**
-```c
-MPI_Init(&argc, &argv)     // Inicializar ambiente MPI
-MPI_Finalize()             // Finalizar ambiente MPI
-```
-
-#### 2. **Identificação de Processos**
-```c
-MPI_Comm_rank(MPI_COMM_WORLD, &rank)  // Identifica o rank do processo
-MPI_Comm_size(MPI_COMM_WORLD, &size)  // Obtém número total de processos
-```
-
-#### 3. **Comunicação Point-to-Point**
-```c
-MPI_Send()  // Processos worker enviam resultados para master
-MPI_Recv()  // Processo master recebe resultados dos workers
-```
-
-#### 4. **Operações Coletivas**
-```c
-MPI_Reduce()     // Redução para somar todos os pontos dentro do círculo
-MPI_Bcast()      // Broadcast do número de pontos por processo (opcional)
-```
-
-#### 5. **Medição de Tempo**
-```c
-MPI_Wtime()  // Medir tempo de execução para análise de performance
-```
-
-### Estrutura do Programa
-
-#### Arquivos do Projeto
+## 🏗️ Estrutura do Projeto
 
 ```
 /
-├── README.md              # Este arquivo
+├── README.md              # Documentação completa
+├── Makefile              # Comandos automatizados
 ├── src/
 │   ├── monte_carlo_pi.c   # Programa principal MPI
 │   └── utils.h            # Funções utilitárias
 ├── scripts/
 │   ├── compile.sh         # Script de compilação
-│   └── run.sh            # Script de execução
+│   ├── run.sh            # Script de execução local
+│   └── run_docker.sh     # Script para containers Docker
+├── docker/
+│   ├── Dockerfile        # Imagem Alpine otimizada (36.3MB)
+│   └── docker-compose.yml # Configuração dos containers
 ├── examples/
 │   ├── hostfile           # Exemplo de configuração distribuída
 │   └── hostfile_simple    # Configuração local simples
-├── results/
-│   └── performance.txt    # Resultados de performance
-└── docs/
-    ├── mpi_analysis.md    # Análise das funcionalidades MPI
-    └── mpi_distributed.md # Guia de execução distribuída
+└── results/
+    └── performance.txt    # Resultados de performance
 ```
+
+## 🚀 Execução Rápida
+
+### Opção 1: Execução Local (MPI no Sistema)
+
+```bash
+# Compilar e testar
+make test
+
+# Testes com diferentes configurações
+make test-scaling      # Teste de escalabilidade
+make test-precision    # Teste de precisão
+```
+
+### Opção 2: Execução com Docker (Recomendado)
+
+```bash
+# 1. Deploy dos containers
+make docker-deploy
+
+# 2. Executar cálculo distribuído
+make docker-run
+
+# 3. Limpar quando terminar
+make docker-cleanup
+```
+
+## 🐳 Execução com Docker Containers
+
+### Vantagens da Solução Docker
+
+- ✅ **Imagem Ultra-Otimizada**: Alpine Linux (36.3MB - 94% menor que Ubuntu)
+- ✅ **Isolamento Completo**: Cada processo roda em container separado
+- ✅ **Portabilidade Total**: Funciona em qualquer sistema com Docker
+- ✅ **Setup Automático**: Um comando faz todo o deploy
+- ✅ **Escalabilidade Fácil**: Ajuste o número de containers dinamicamente
+
+### Comandos Docker Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `make docker-build` | Construir imagem otimizada |
+| `make docker-deploy` | Deploy dos containers MPI |
+| `make docker-run` | Executar programa distribuído |
+| `make docker-status` | Ver status dos containers |
+| `make docker-scale` | Escalar número de containers |
+| `make docker-menu` | Menu interativo completo |
+| `make docker-cleanup` | Limpar containers |
+
+### Menu Interativo Docker
+
+Para uma experiência mais amigável:
+
+```bash
+make docker-menu
+```
+
+Isso abrirá um menu completo:
+
+```
+===============================================
+    MPI Distribuído com Docker Containers
+===============================================
+1. Verificar dependências
+2. Construir imagem otimizada  
+3. Deploy dos containers
+4. Verificar status dos containers
+5. Testar conectividade
+6. Executar programa MPI
+7. Escalar containers
+8. Ver logs
+9. Limpar containers
+0. Sair
+===============================================
+```
+
+### Execução Personalizada
+
+```bash
+# Deploy com número específico de containers
+./scripts/run_docker.sh deploy 4
+
+# Executar com parâmetros personalizados
+./scripts/run_docker.sh run 8 1000000    # 8 processos, 1M pontos
+./scripts/run_docker.sh run 16 50000000  # 16 processos, 50M pontos
+
+# Escalar para mais containers
+./scripts/run_docker.sh scale 12
+```
+
+## 💻 Execução Local (MPI Nativo)
+
+### Instalação das Dependências
+
+**Ubuntu/Debian:**
+```bash
+make install-deps-ubuntu
+```
+
+**macOS:**
+```bash
+make install-deps-macos
+```
+
+**Verificar instalação:**
+```bash
+make check-mpi
+make mpi-info
+```
+
+### Comandos de Execução Local
+
+```bash
+# Compilação
+make compile
+
+# Testes básicos
+make test              # Teste rápido (4 processos, 100K pontos)
+make test-scaling      # Teste de escalabilidade (1,2,4,8 processos)
+make test-precision    # Teste de precisão (100K, 1M, 10M pontos)
+
+# Execução manual
+mpirun -np 4 ./build/monte_carlo_pi 1000000
+mpirun -np 8 ./build/monte_carlo_pi 10000000
+```
+
+### Execução Distribuída (Múltiplas Máquinas)
+
+Para executar em múltiplas máquinas físicas:
+
+```bash
+# 1. Configurar SSH sem senha entre máquinas
+ssh-keygen -t rsa
+ssh-copy-id user@machine2
+ssh-copy-id user@machine3
+
+# 2. Criar arquivo hostfile
+echo "machine1 slots=8" > hostfile
+echo "machine2 slots=4" >> hostfile  
+echo "machine3 slots=16" >> hostfile
+
+# 3. Executar distribuído
+mpirun -np 28 --hostfile hostfile ./build/monte_carlo_pi 100000000
+```
+
+## 📊 Resultados e Performance
+
+### Exemplo de Saída
+
+```
+==========================================
+Calculando Pi usando Monte Carlo com MPI
+==========================================
+Número de processos: 8
+Total de pontos: 10000000
+Pontos por processo: 1250000
+------------------------------------------
+Processo 0: 981976 pontos dentro do círculo (de 1250000 pontos)
+Processo 1: 981311 pontos dentro do círculo (de 1250000 pontos)
+Processo 2: 981706 pontos dentro do círculo (de 1250000 pontos)
+Processo 3: 982444 pontos dentro do círculo (de 1250000 pontos)
+Processo 4: 981970 pontos dentro do círculo (de 1250000 pontos)
+Processo 5: 980772 pontos dentro do círculo (de 1250000 pontos)
+Processo 6: 981788 pontos dentro do círculo (de 1250000 pontos)
+Processo 7: 981803 pontos dentro do círculo (de 1250000 pontos)
+------------------------------------------
+RESULTADOS FINAIS:
+Total de pontos dentro do círculo: 7853770
+Pi estimado: 3.141508
+Pi real: 3.141593
+Erro absoluto: 0.000085
+Erro percentual: 0.003%
+Tempo de execução: 0.044737 segundos
+------------------------------------------
+MÉTRICAS DE PERFORMANCE:
+Speedup estimado: 6.80x
+Eficiência estimada: 85.0%
+Throughput: 178823194 pontos/segundo
+==========================================
+```
+
+### Análise de Performance
+
+**Métricas Importantes:**
+- **Speedup**: T_sequencial / T_paralelo
+- **Eficiência**: Speedup / número_de_processos  
+- **Throughput**: Pontos processados por segundo
+- **Precisão**: Erro percentual em relação ao Pi real
+
+**Fatores que Afetam Performance:**
+- Número de processos vs. cores disponíveis
+- Quantidade de pontos (mais pontos = maior precisão)
+- Overhead de comunicação MPI
+- Qualidade do gerador de números aleatórios
+
+## 🔬 Conceitos MPI Demonstrados
+
+### Funcionalidades MPI Utilizadas
+
+1. **Inicialização e Finalização**
+   ```c
+   MPI_Init(&argc, &argv)     // Inicializar ambiente MPI
+   MPI_Finalize()             // Finalizar ambiente MPI
+   ```
+
+2. **Identificação de Processos**
+   ```c
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank)  // ID do processo
+   MPI_Comm_size(MPI_COMM_WORLD, &size)  // Total de processos
+   ```
+
+3. **Comunicação Point-to-Point**
+   ```c
+   MPI_Send()  // Workers enviam resultados para master
+   MPI_Recv()  // Master recebe resultados dos workers
+   ```
+
+4. **Operações Coletivas**
+   ```c
+   MPI_Reduce()  // Redução para somar pontos dentro do círculo
+   ```
+
+5. **Medição de Tempo**
+   ```c
+   MPI_Wtime()  // Medição precisa de tempo para análise
+   ```
+
+### Arquitetura Paralela
+
+**Estratégia SPMD (Single Program, Multiple Data):**
+- **Processo Master (rank 0)**: Coordena execução e coleta resultados
+- **Processes Workers (rank > 0)**: Executam simulações independentes
+- **Distribuição**: Cada processo calcula N/P pontos (N=total, P=processos)
+
+### Padrões de Paralelização
+
+1. **Decomposição de Domínio**: Problema dividido em partes independentes
+2. **Load Balancing**: Trabalho distribuído uniformemente
+3. **Comunicação Coletiva**: Uso eficiente de operações MPI
+4. **Sincronização**: Coordenação entre processos
+
+## 🏗️ Detalhes Técnicos
+
+### Imagem Docker Otimizada
+
+A imagem Docker utiliza **Alpine Linux Multi-stage** para máxima otimização:
+
+```dockerfile
+# Estágio 1: Build (descartado após compilação)
+FROM alpine:3.19 AS builder
+RUN apk add --no-cache openmpi-dev gcc g++ make libc-dev
+COPY src/ /tmp/
+RUN mpicc /tmp/monte_carlo_pi.c -o /tmp/monte_carlo_pi -lm
+
+# Estágio 2: Runtime (imagem final)
+FROM alpine:3.19  
+RUN apk add --no-cache openmpi openssh-server openssh-client bash
+COPY --from=builder /tmp/monte_carlo_pi /home/mpiuser/
+# ... configurações SSH e usuário
+```
+
+**Vantagens:**
+- **Tamanho**: 36.3MB (94% menor que Ubuntu)
+- **Segurança**: Menor superfície de ataque
+- **Performance**: Menos overhead, mais rápido
+- **Portabilidade**: Funciona em qualquer Docker
 
 ### Algoritmo Detalhado
 
 #### Processo Master (rank 0):
-1. Inicializar MPI
-2. Determinar número de pontos por processo
-3. Executar simulação Monte Carlo local
-4. Receber resultados dos processos worker
-5. Calcular Pi final e tempo de execução
-6. Exibir resultados e estatísticas
+1. Inicializar MPI e determinar número de pontos por processo
+2. Executar simulação Monte Carlo local
+3. Receber resultados dos processos worker via MPI_Recv
+4. Calcular Pi final e estatísticas de performance
+5. Exibir resultados formatados
 
 #### Processos Worker (rank > 0):
-1. Inicializar MPI
-2. Receber número de pontos para processar
-3. Executar simulação Monte Carlo local
-4. Enviar resultado para processo master
+1. Inicializar MPI e receber configuração
+2. Executar simulação Monte Carlo independente
+3. Enviar contagem de pontos para master via MPI_Send
+4. Finalizar execução
 
-### Análise de Performance
+### Geração de Números Aleatórios
 
-**Métricas a serem medidas**:
-- Tempo de execução sequencial vs paralelo
-- Speedup: T_sequencial / T_paralelo
-- Eficiência: Speedup / número_de_processos
-- Escalabilidade com diferentes números de processos
+O programa utiliza gerador congruencial linear com:
+- **Semente única por processo**: Baseada no rank MPI
+- **Período longo**: Evita repetição de sequências
+- **Distribuição uniforme**: Garante cobertura adequada do espaço
 
-**Testes Planejados**:
-- Execução com 1, 2, 4, 8 processos
-- Diferentes números de pontos (10⁶, 10⁷, 10⁸)
-- Análise da precisão vs. performance
+## 🧪 Testes e Validação
 
-### Funcionalidades MPI em Detalhes
-
-#### 1. **MPI_Init e MPI_Finalize**
-- **Propósito**: Inicialização e finalização do ambiente MPI
-- **Uso**: Obrigatório no início e fim de qualquer programa MPI
-
-#### 2. **MPI_Comm_rank e MPI_Comm_size**
-- **Propósito**: Identificação de processos e conhecimento do ambiente
-- **Uso**: Determinar papel de cada processo (master/worker)
-
-#### 3. **MPI_Send e MPI_Recv**
-- **Propósito**: Comunicação ponto-a-ponto bloqueante
-- **Uso**: Workers enviam contagem de pontos para master
-
-#### 4. **MPI_Reduce**
-- **Propósito**: Operação coletiva de redução (soma)
-- **Uso**: Somar todos os pontos dentro do círculo de todos os processos
-- **Vantagem**: Mais eficiente que múltiplos Send/Recv
-
-#### 5. **MPI_Wtime**
-- **Propósito**: Medição precisa de tempo
-- **Uso**: Análise de performance e benchmarking
-
-### Compilação e Execução
+### Suíte de Testes Automatizada
 
 ```bash
-# Compilação
-mpicc -o monte_carlo_pi src/monte_carlo_pi.c -lm
+# Teste básico de funcionamento
+make test
 
-# Execução local
-mpirun -np 4 ./monte_carlo_pi 1000000
+# Análise de escalabilidade
+make test-scaling
+# Testa com 1, 2, 4, 8 processos para medir speedup
 
-# Execução distribuída
-mpirun -np 16 --hostfile hostfile ./monte_carlo_pi 10000000
-
-# Execução com diferentes configurações
-mpirun -np 2 ./monte_carlo_pi 10000000
-mpirun -np 8 ./monte_carlo_pi 100000000
+# Análise de precisão  
+make test-precision
+# Testa com 100K, 1M, 10M pontos para medir convergência
 ```
 
-### Usando o Makefile
+### Validação dos Resultados
+
+**Critérios de Validação:**
+- Erro percentual < 1% para 1M+ pontos
+- Speedup próximo ao número de processos
+- Eficiência > 80% até 8 processos
+- Convergência para Pi com mais pontos
+
+## 🔧 Solução de Problemas
+
+### Problemas Comuns
+
+**1. "mpicc not found"**
+```bash
+# Ubuntu/Debian
+sudo apt-get install libopenmpi-dev openmpi-bin
+
+# macOS  
+brew install open-mpi
+```
+
+**2. "Docker não encontrado"**
+```bash
+# Instalar Docker Desktop
+# Verificar se está rodando
+docker --version
+make docker-check
+```
+
+**3. "Permission denied" nos scripts**
+```bash
+chmod +x scripts/*.sh
+```
+
+**4. Containers não inicializam**
+```bash
+# Limpar ambiente
+make docker-cleanup
+docker system prune -f
+
+# Tentar novamente
+make docker-deploy
+```
+
+### Debugging
 
 ```bash
-# Compilar
-make compile
+# Ver logs detalhados dos containers
+make docker-logs
 
-# Testes rápidos
-make test              # Teste básico
-make test-scaling      # Teste de escalabilidade  
-make test-precision    # Teste de precisão
-
-# Verificar sistema
-make check-mpi         # Verificar se MPI está instalado
-make mpi-info          # Informações do sistema MPI
-
-# Limpeza
-make clean            # Remover arquivos gerados
-```
-
-### Resultados Esperados
-
-**Saída do Programa**:
-```
-Calculando Pi usando Monte Carlo com MPI
-Número de processos: 4
-Pontos por processo: 250000
-Total de pontos: 1000000
-
-Processo 0: 196350 pontos dentro do círculo
-Processo 1: 196428 pontos dentro do círculo  
-Processo 2: 196502 pontos dentro do círculo
-Processo 3: 196381 pontos dentro do círculo
-
-Total de pontos dentro do círculo: 785661
-Pi estimado: 3.142644
-Pi real: 3.141593
-Erro: 0.033%
-Tempo de execução: 0.025 segundos
-Speedup: 3.2x
-Eficiência: 80%
-```
-
-### Vantagens da Solução MPI
-
-1. **Escalabilidade**: Pode ser executado em múltiplas máquinas
-2. **Flexibilidade**: Funciona em clusters e supercomputadores
-3. **Portabilidade**: Padrão MPI é amplamente suportado
-4. **Performance**: Distribuição eficiente do trabalho computacional
-
-### Conceitos de MPI Demonstrados
-
-- **SPMD** (Single Program, Multiple Data): Mesmo programa, dados diferentes
-- **Decomposição de domínio**: Divisão do problema em partes independentes
-- **Comunicação coletiva**: Uso eficiente de operações MPI
-- **Sincronização**: Coordenação entre processos
-- **Load balancing**: Distribuição equilibrada do trabalho
-
-### Extensões Futuras
-
-1. **MPI_Scatter/MPI_Gather**: Para distribuição mais sofisticada
-2. **MPI_Isend/MPI_Irecv**: Comunicação não-bloqueante
-3. **Múltiplos communicators**: Para hierarquias de processos
-4. **MPI-IO**: Para escrita paralela de resultados
-
-Este projeto fornece uma base sólida para compreender os conceitos fundamentais do MPI e sua aplicação em problemas de computação científica.
-
-# Utilizando Docker Swarm com MPI Distribuído
-
-Este projeto demonstra como executar um programa paralelo com MPI (Message Passing Interface) utilizando múltiplos containers Docker que atuam como nós de um cluster distribuído.
-
-O cluster utiliza Docker Swarm para orquestração e pode ser facilmente escalado conforme a necessidade. Cada nó executa em um container separado com todas as dependências MPI configuradas.
-
-## Arquitetura do Cluster
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Container 1   │    │   Container 2   │    │   Container N   │
-│   (mpi-node-1)  │◄──►│   (mpi-node-2)  │◄──►│   (mpi-node-N)  │
-│   Ubuntu + MPI  │    │   Ubuntu + MPI  │    │   Ubuntu + MPI  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                       ▲                       ▲
-         └───────────────────────┼───────────────────────┘
-                          Docker Swarm
-                        Rede Overlay (mpi-net)
-```
-
-## Configuração Rápida
-
-### 1. Verificar dependências
-```bash
-make docker-check      # Verificar se Docker está instalado e funcionando
-```
-
-### 2. Construir e fazer deploy do cluster
-```bash
-make swarm-deploy      # Constrói imagem otimizada e faz deploy no Swarm
-```
-
-### 3. Verificar status do cluster
-```bash
-make swarm-status      # Ver status dos containers
-```
-
-### 4. Executar programa distribuído
-```bash
-make swarm-run         # Executar Monte Carlo Pi no cluster
-```
-
-## Imagem Docker Otimizada
-
-O projeto utiliza uma **imagem Alpine Linux multi-stage** altamente otimizada:
-
-### 🚀 **Vantagens da Otimização**
-
-| Aspecto | Ubuntu Original | **Alpine Otimizada** | **Melhoria** |
-|---------|-----------------|---------------------|--------------|
-| **Tamanho** | ~180MB | **~60MB** | **🔥 67% menor** |
-| **Build Time** | Lento | **Muito Rápido** | **⚡ 3x mais rápido** |
-| **Segurança** | Média | **Alta** | **🛡️ Menor superfície de ataque** |
-| **Recursos** | Altos | **Mínimos** | **💾 Menos CPU/RAM** |
-
-### 🏗️ **Tecnologia Multi-stage**
-
-A imagem utiliza build em **2 estágios**:
-
-```dockerfile
-# Estágio 1: Compilação (descartado)
-FROM alpine:3.19 AS builder
-# Instala ferramentas de build (gcc, g++, make)
-# Compila o programa MPI
-
-# Estágio 2: Runtime (imagem final)  
-FROM alpine:3.19
-# Instala apenas runtime MPI + SSH
-# Copia apenas o binário compilado
-```
-
-**Resultado**: Imagem final contém apenas o necessário para executar, sem ferramentas de compilação.
-
-## Comandos Detalhados
-
-### Construção e Deploy
-```bash
-make docker-build      # Construir imagem otimizada
-make swarm-init        # Inicializar Docker Swarm
-make swarm-deploy      # Deploy completo (build + init + deploy)
-```
-
-### Operação do Cluster
-```bash
-make swarm-status      # Status dos serviços e containers
-make swarm-test        # Testar conectividade entre nós
-make swarm-run         # Executar programa MPI distribuído
-make swarm-scale       # Escalar número de nós interativamente
-```
-
-### Limpeza
-```bash
-make swarm-cleanup     # Remover stack do Swarm
-make clean            # Limpar arquivos locais
-```
-
-## Configuração Manual Avançada
-
-### 1. Personalizar número de réplicas
-
-Edite o arquivo `docker/docker-compose.yml`:
-```yaml
-services:
-  mpi-node:
-    # ... existing code ...
-    deploy:
-      replicas: 8  # Altere para o número desejado de nós
-```
-
-### 2. Executar comandos personalizados no cluster
-
-Acesse um container:
-```bash
-# Listar containers
-docker ps | grep mpi_stack
-
-# Acessar container específico
-docker exec -u mpiuser -it <container_name> bash
-
-# Executar MPI personalizado
-mpirun -np 16 --host mpi-node-1,mpi-node-2,... ./monte_carlo_pi 1000000000
-```
-
-### 3. Monitoramento do cluster
-
-```bash
-# Ver logs dos serviços
-docker service logs mpi_stack_mpi-node
-
-# Monitorar recursos
-docker stats
-
-# Inspecionar rede
-docker network ls
-docker network inspect mpi_stack_mpi-net
-```
-
-## Vantagens do Docker Swarm
-
-1. **Facilidade de uso**: Deploy com um comando
-2. **Escalabilidade**: Adicione/remova nós facilmente
-3. **Isolamento**: Cada processo MPI roda em container isolado
-4. **Portabilidade**: Funciona em qualquer ambiente com Docker
-5. **Reprodutibilidade**: Ambiente idêntico em qualquer máquina
-6. **Orquestração nativa**: Gerenciamento automático de containers
-
-## Solução de Problemas
-
-### Problema: Docker Swarm não inicializado
-```bash
-docker swarm init
-```
-
-### Problema: Containers não se comunicam
-```bash
-# Verificar rede overlay
-docker network ls | grep overlay
+# Verificar status
+make docker-status
 
 # Testar conectividade
-make swarm-test
+make docker-test
+
+# Executar comandos dentro do container
+docker exec -it mpi-node-1 bash
 ```
 
-### Problema: Imagem não encontrada
+## 📈 Extensões Futuras
+
+### Melhorias Possíveis
+
+1. **MPI Avançado**
+   - MPI_Scatter/MPI_Gather para distribuição mais sofisticada
+   - MPI_Isend/MPI_Irecv para comunicação não-bloqueante
+   - Múltiplos communicators para hierarquias
+
+2. **Algoritmos**
+   - Outros métodos Monte Carlo (integração, otimização)
+   - Algoritmos determinísticos para comparação
+   - Análise estatística mais robusta
+
+3. **Infraestrutura**
+   - Kubernetes para orquestração em produção
+   - Monitoramento com Prometheus/Grafana
+   - CI/CD para testes automatizados
+
+4. **Interface**
+   - Web dashboard para visualização
+   - API REST para execução remota
+   - Gráficos de convergência em tempo real
+
+## 📚 Recursos Adicionais
+
+### Comandos de Referência Rápida
+
 ```bash
-# Reconstruir imagem
-make docker-build
+# EXECUÇÃO LOCAL
+make test                    # Teste básico
+make test-scaling           # Análise de performance
+mpirun -np 8 ./build/monte_carlo_pi 10000000
+
+# EXECUÇÃO DOCKER  
+make docker-deploy          # Setup completo
+make docker-run             # Executar distribuído
+make docker-menu            # Interface interativa
+./scripts/run_docker.sh run 16 100000000
+
+# UTILITÁRIOS
+make clean                  # Limpar arquivos
+make check-mpi             # Verificar MPI
+make mpi-info              # Info do sistema
+make help                  # Ajuda completa
 ```
 
-### Problema: Stack não remove
-```bash
-# Forçar remoção
-docker stack rm mpi_stack
-docker system prune -f
-```
+### Parâmetros Recomendados
 
-## Comparação: Local vs Docker Swarm
+| Cenário | Processos | Pontos | Tempo Aprox |
+|---------|-----------|--------|-------------|
+| Teste Rápido | 4 | 100K | < 1s |
+| Desenvolvimento | 8 | 1M | ~1s |
+| Benchmark | 16 | 10M | ~10s |
+| Produção | 32 | 100M+ | ~60s+ |
 
-| Aspecto | Execução Local | Docker Swarm |
-|---------|----------------|--------------|
-| Setup | Instalar MPI localmente | Docker + 1 comando |
-| Escalabilidade | Limitada aos cores locais | Ilimitada (múltiplas máquinas) |
-| Isolamento | Processos compartilham OS | Containers isolados |
-| Portabilidade | Dependente do SO | Funciona em qualquer Docker |
-| Overhead | Mínimo | Pequeno (containers) |
-| Gerenciamento | Manual | Automático (Swarm) |
+---
 
-## Conceitos de MPI Demonstrados
+## 🎯 Conclusão
 
-- **SPMD** (Single Program, Multiple Data): Mesmo programa, dados diferentes
-- **Decomposição de domínio**: Divisão do problema em partes independentes
-- **Comunicação coletiva**: Uso eficiente de operações MPI
-- **Sincronização**: Coordenação entre processos
-- **Load balancing**: Distribuição equilibrada do trabalho
-- **Cluster computing**: Execução em múltiplos nós físicos/virtuais
+Este projeto demonstra conceitos fundamentais de:
+- **Programação Paralela** com MPI
+- **Métodos Monte Carlo** para computação científica  
+- **Containerização** com Docker
+- **Otimização de Performance** em sistemas distribuídos
 
-Este projeto fornece uma base sólida para compreender tanto os conceitos fundamentais do MPI quanto sua aplicação em ambientes containerizados e distribuídos. 
+**Ideal para:** Estudantes de computação paralela, desenvolvedores interessados em MPI, e profissionais que trabalham com simulações numéricas.
+
+**Tecnologias:** C, MPI, Docker, Alpine Linux, Shell Script, Makefile 
