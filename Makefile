@@ -68,7 +68,7 @@ test-precision: $(TARGET) $(RESULTSDIR)
 # Construir imagem Docker otimizada (Alpine Multi-stage)
 docker-build: $(TARGET)
 	@echo "Construindo imagem Docker MPI otimizada (Alpine Multi-stage)..."
-	docker build -t mpi-node:latest -f docker/Dockerfile .
+	docker build -t mpi-node:latest -f ./Dockerfile .
 
 # Verificar dependências do Docker
 docker-check:

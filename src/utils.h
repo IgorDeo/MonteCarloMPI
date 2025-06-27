@@ -31,23 +31,6 @@ long long monte_carlo_simulation(long long num_points, int seed_offset) {
     return points_inside;
 }
 
-// Função para calcular métricas de performance
-void calculate_performance_metrics(double parallel_time, int num_processes) {
-    // Para calcular speedup real, precisaríamos do tempo sequencial
-    // Por ora, estimamos baseado em eficiência típica
-    double estimated_sequential_time = parallel_time * num_processes * 0.85; // Assumindo 85% de eficiência
-    double speedup = estimated_sequential_time / parallel_time;
-    double efficiency = speedup / num_processes * 100.0;
-    
-    printf("------------------------------------------\n");
-    printf("MÉTRICAS DE PERFORMANCE:\n");
-    printf("Tempo paralelo: %.6f segundos\n", parallel_time);
-    printf("Speedup estimado: %.2fx\n", speedup);
-    printf("Eficiência estimada: %.1f%%\n", efficiency);
-    printf("Throughput: %.0f pontos/segundo\n", 
-           (double)(num_processes * 1000000) / parallel_time);
-}
-
 // Função para validar entrada
 int validate_input(long long total_points, int num_processes) {
     if (total_points <= 0) {

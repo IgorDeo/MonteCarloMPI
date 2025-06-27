@@ -28,6 +28,7 @@ O método baseia-se na relação geométrica entre um círculo inscrito em um qu
 /
 ├── README.md              # Documentação completa
 ├── Makefile              # Comandos automatizados
+├── Dockerfile        # Imagem Alpine otimizada (36.3MB)
 ├── src/
 │   ├── monte_carlo_pi.c   # Programa principal MPI
 │   └── utils.h            # Funções utilitárias
@@ -35,14 +36,6 @@ O método baseia-se na relação geométrica entre um círculo inscrito em um qu
 │   ├── compile.sh         # Script de compilação
 │   ├── run.sh            # Script de execução local
 │   └── run_docker.sh     # Script para containers Docker
-├── docker/
-│   ├── Dockerfile        # Imagem Alpine otimizada (36.3MB)
-│   └── docker-compose.yml # Configuração dos containers
-├── examples/
-│   ├── hostfile           # Exemplo de configuração distribuída
-│   └── hostfile_simple    # Configuração local simples
-└── results/
-    └── performance.txt    # Resultados de performance
 ```
 
 ## 🚀 Execução Rápida
@@ -218,26 +211,7 @@ Erro absoluto: 0.000085
 Erro percentual: 0.003%
 Tempo de execução: 0.044737 segundos
 ------------------------------------------
-MÉTRICAS DE PERFORMANCE:
-Speedup estimado: 6.80x
-Eficiência estimada: 85.0%
-Throughput: 178823194 pontos/segundo
-==========================================
 ```
-
-### Análise de Performance
-
-**Métricas Importantes:**
-- **Speedup**: T_sequencial / T_paralelo
-- **Eficiência**: Speedup / número_de_processos  
-- **Throughput**: Pontos processados por segundo
-- **Precisão**: Erro percentual em relação ao Pi real
-
-**Fatores que Afetam Performance:**
-- Número de processos vs. cores disponíveis
-- Quantidade de pontos (mais pontos = maior precisão)
-- Overhead de comunicação MPI
-- Qualidade do gerador de números aleatórios
 
 ## 🔬 Conceitos MPI Demonstrados
 
@@ -255,10 +229,9 @@ Throughput: 178823194 pontos/segundo
    MPI_Comm_size(MPI_COMM_WORLD, &size)  // Total de processos
    ```
 
-3. **Comunicação Point-to-Point**
+3. **Sincronização**
    ```c
-   MPI_Send()  // Workers enviam resultados para master
-   MPI_Recv()  // Master recebe resultados dos workers
+   MPI_Barrier(MPI_COMM_WORLD)  // Sincronizar todos os processos
    ```
 
 4. **Operações Coletivas**
@@ -274,16 +247,16 @@ Throughput: 178823194 pontos/segundo
 ### Arquitetura Paralela
 
 **Estratégia SPMD (Single Program, Multiple Data):**
-- **Processo Master (rank 0)**: Coordena execução e coleta resultados
-- **Processes Workers (rank > 0)**: Executam simulações independentes
+- **Todos os processos**: Executam o mesmo programa com dados diferentes
 - **Distribuição**: Cada processo calcula N/P pontos (N=total, P=processos)
+- **Agregação**: MPI_Reduce soma todos os resultados locais
 
 ### Padrões de Paralelização
 
 1. **Decomposição de Domínio**: Problema dividido em partes independentes
 2. **Load Balancing**: Trabalho distribuído uniformemente
-3. **Comunicação Coletiva**: Uso eficiente de operações MPI
-4. **Sincronização**: Coordenação entre processos
+3. **Comunicação Coletiva**: Uso eficiente de MPI_Reduce
+4. **Sincronização**: Coordenação entre processos com MPI_Barrier
 
 ## 🏗️ Detalhes Técnicos
 
@@ -313,18 +286,15 @@ COPY --from=builder /tmp/monte_carlo_pi /home/mpiuser/
 
 ### Algoritmo Detalhado
 
-#### Processo Master (rank 0):
-1. Inicializar MPI e determinar número de pontos por processo
-2. Executar simulação Monte Carlo local
-3. Receber resultados dos processos worker via MPI_Recv
-4. Calcular Pi final e estatísticas de performance
-5. Exibir resultados formatados
-
-#### Processos Worker (rank > 0):
-1. Inicializar MPI e receber configuração
-2. Executar simulação Monte Carlo independente
-3. Enviar contagem de pontos para master via MPI_Send
-4. Finalizar execução
+#### Algoritmo SPMD (Single Program, Multiple Data):
+1. **Todos os processos** executam o mesmo código
+2. **Inicialização**: MPI_Init, obter rank e size
+3. **Distribuição**: Cada processo calcula pontos_totais/num_processos
+4. **Sincronização**: MPI_Barrier para medição precisa de tempo
+5. **Simulação**: Cada processo executa Monte Carlo independentemente
+6. **Agregação**: MPI_Reduce soma resultados de todos os processos
+7. **Resultado**: Processo rank 0 calcula Pi final e exibe resultados
+8. **Finalização**: MPI_Finalize em todos os processos
 
 ### Geração de Números Aleatórios
 

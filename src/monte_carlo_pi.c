@@ -86,9 +86,6 @@ int main(int argc, char *argv[]) {
         printf("Erro percentual: %.3f%%\n", error_percentage);
         printf("Tempo de execução: %.6f segundos\n", execution_time);
         
-        // Calcular e exibir métricas de performance
-        calculate_performance_metrics(execution_time, size);
-        
         printf("==========================================\n");
     }
     

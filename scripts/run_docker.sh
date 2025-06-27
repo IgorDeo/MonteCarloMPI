@@ -61,7 +61,7 @@ remove_network() {
 build_image() {
     log_info "Construindo imagem MPI otimizada (Alpine Multi-stage)..."
     cd "$(dirname "$0")/.."
-    docker build -t mpi-node:latest -f docker/Dockerfile .
+    docker build -t mpi-node:latest -f ./Dockerfile .
     log_info "Imagem construída com sucesso"
 }
 
